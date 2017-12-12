@@ -4,7 +4,8 @@ fout = open("data/labeled_test.csv","w+")
 
 files = glob.glob("data/openface_output/*")
 
-
+# TODO
+# Add the AU labels to the CSV
 for file in files:
     f = open(file)
     
