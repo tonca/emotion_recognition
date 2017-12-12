@@ -1,0 +1,5 @@
+*.pdf
+.ipynb_checkpoints
+*.html
+data
+!.gitkeep
