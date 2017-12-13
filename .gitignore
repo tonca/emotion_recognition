@@ -3,3 +3,4 @@
 *.html
 data
 !.gitkeep
+scripts/apis/api_keys.py
