@@ -39,7 +39,14 @@ This file contains the following informations:
 - `AU**_r` : Action units from the OpenFace regressor (values [0,5])
 - `AU**_c` : Action units from the OpenFace classifier (values {0,1})
 - `emotion` : true emotion label from the dataset
-- `true_AU**` : true FACS labels from the dataset
+- `true_AU**` : true FACS labels from the dataset 
+
+true_AU** reference:
+| Value | Meaning                      | 
+| ----- |:-----------------------------| 
+| 0     | not activated                |
+| not 0 | intensity value              | 
+| -1    | activated, unknown intensity |
 
 ### The `scripts` folder
 

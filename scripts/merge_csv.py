@@ -53,13 +53,15 @@ for file in files:
 
 
     # FACS labels
-    facs_labels = [-1] * len(facs_list)
+    facs_labels = [0] * len(facs_list)
     facs_label_path = "data/FACS/%s/%s/*"%(file[21:25],file[26:29])    
     facs_label_path = glob.glob(facs_label_path)[0]
     for line in open(facs_label_path, 'r'):
         tokens = line[2:].split("   ")
         facs_id = "true_AU{:02d}".format(int(float(tokens[0])))
         facs_val = float(tokens[1])
+        if (facs_val == 0):
+            facs_val = -1 
         facs_labels[sorted(facs_list).index(facs_id)] = facs_val
 
     facs_row = ""
