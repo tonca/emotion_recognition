@@ -43,11 +43,11 @@ This file contains the following informations:
 
 `true_AU**` reference:
 
-| Value | Meaning                      | 
-|:-----:|:-----------------------------| 
-| 0     | not activated                |
-| not 0 | intensity value              | 
-| -1    | activated, unknown intensity |
+| Value   | Meaning                      | 
+|:-------:|:-----------------------------| 
+| 0       | not activated                |
+| ( 0, 5 ]| intensity value              | 
+| -1      | activated, unknown intensity |
 
 ### The `scripts` folder
 
