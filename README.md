@@ -32,6 +32,15 @@ This folder is not loaded in the repository (this is autoatically managed by the
 This means that when you clone the repo you will have to add manually the data files that you will need.
 Put all the heavy data files into this directory.
 
+#### The `labeled_light.csv`
+
+This file contains the following informations:
+- `img_name` : name of the image in the CK+ dataset
+- `AU**_r` : Action units from the OpenFace regressor (values [0,5])
+- `AU**_c` : Action units from the OpenFace classifier (values {0,1})
+- `emotion` : true emotion label from the dataset
+- `true_AU**` : true FACS labels from the dataset
+
 ### The `scripts` folder
 
 The scripts in this directory are not meant to be executed and you won't need to. 
