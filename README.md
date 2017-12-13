@@ -11,19 +11,19 @@ First of all you need to be added as contributor, you will need a github account
 
 1. Verify that the code works
 
-2. Verify which files have been changed__
+2. Verify which files have been changed <br/>
 `git status`
 
-3. Add the changes to the git repository__
+3. Add the changes to the git repository <br/>
 `git add .`
 
-4. Commit changes__
+4. Commit changes <br/>
 `git commit -m "COMMIT DESCRIPTION"`
 
-5. Update the local repository__
+5. Update the local repository <br/>
 `git pull`
 
-6. Update the remote repository__
+6. Update the remote repository <br/>
 `git push`
 
 ### The `data` folder
