@@ -27,7 +27,6 @@ facs_head = ""
 for col in sorted(facs_list):
     facs_head = facs_head+col+", "
 facs_head = facs_head[:-2]
-print(facs_head)
 
 
 # first file:
@@ -68,7 +67,6 @@ for file in files:
     for col in sorted(facs_labels):
         facs_row = facs_row+str(col)+", "
     facs_row = facs_row[:-2]
-    print(facs_row)
 
     # Skip the header
     next(f) 
@@ -93,3 +91,31 @@ selected_cols.insert(0,"img_name")
 selected_cols.append("emotion")
 
 df[selected_cols].to_csv("data/labeled_light.csv")
+
+df_lite = df[selected_cols].copy()
+
+
+# Exclude images
+sel_images = []
+
+# Select images
+label_files_path = "data/Emotion/*"    
+for participant in glob.glob(label_files_path):
+	for sequence in glob.glob(participant+"/*"):
+		img_seq = glob.glob(sequence+"/*")
+		if len(img_seq) > 0:
+			file_ = img_seq[0].split("/")[-1][:-12] 
+			sel_images.append(file_[-16:])
+
+
+neutral_df = df_lite[df_lite["img_name"].apply(lambda img: img[-2:] == "01")].copy()
+neutral_df["emotion"] = 0
+
+emotion_df = df_lite[df_lite["img_name"].apply(lambda img: img[-16:] in sel_images )]
+
+out_df = pd.concat([neutral_df,emotion_df], ignore_index=True)
+
+out_df.sample(frac=1)
+
+# Save to file
+out_df.to_csv("data/labeled_light.csv")
