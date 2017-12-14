@@ -115,7 +115,5 @@ emotion_df = df_lite[df_lite["img_name"].apply(lambda img: img[-16:] in sel_imag
 
 out_df = pd.concat([neutral_df,emotion_df], ignore_index=True)
 
-out_df.sample(frac=1)
-
 # Save to file
 out_df.to_csv("data/labeled_light.csv")
