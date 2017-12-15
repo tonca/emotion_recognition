@@ -1,17 +1,18 @@
 import base64
 import json
-import api_keys
+from api_keys import faceplus, google, amazon, kairos, azure
 
 sources = {
     'google': 'googlevision',
     'kairos': 'kairos',
     'face': 'faceplusplus',
-    'azure': 'azure'
+    'azure': 'azure',
+    'amz': 'amazon'
 }
 
 class Emotions:
-    def __init__(self, id=0, source='', anger=0, contempt=0, disgust=0, fear=0, joy=0, neutral=0, sadness=0, surprise=0):
-        self.id = id
+    def __init__(self, img_name='', source='', anger=0, contempt=0, disgust=0, fear=0, joy=0, neutral=0, sadness=0, surprise=0):
+        self.img_name = img_name
         self.source = source
         # emotions
         self.anger = anger
@@ -24,8 +25,10 @@ class Emotions:
         self.surprise = surprise
     
     def formatted_output(self):
-        return (self.id, self.source, {
-            'id': self.id,
+        return (self.img_name, self.source, {
+            'id': '{}_{}'.format(self.img_name, self.source),
+            'img_name': self.img_name,
+            'source': self.source,
             'anger': self.anger,
             'disgust': self.disgust,
             'fear': self.fear,
@@ -68,7 +71,7 @@ class FaceplusAPI:
         sadness = emotions['sadness']
         surprise = emotions['surprise']
 
-        return Emotions(id=id, source=self.source, anger=anger, disgust=disgust, fear=fear, joy=joy, neutral=neutral, sadness=sadness, surprise=surprise)
+        return Emotions(img_name=id, source=self.source, anger=anger, disgust=disgust, fear=fear, joy=joy, neutral=neutral, sadness=sadness, surprise=surprise)
     
         
 
@@ -99,7 +102,7 @@ class KairosAPI:
         # check if person is detected
         people = json_response['frames'][0]['people']
         if len(people) == 0:
-            return Emotions(id=id, source=self.source, anger=0, disgust=0, fear=0, joy=0, sadness=0, surprise=0)
+            return Emotions(img_name=id, source=self.source, anger=0, disgust=0, fear=0, joy=0, sadness=0, surprise=0)
 
         emotions = people[0]['emotions']
         anger = emotions['anger']
@@ -109,7 +112,7 @@ class KairosAPI:
         sadness = emotions['sadness']
         surprise = emotions['surprise']
 
-        return Emotions(id=id, source=self.source, anger=anger, disgust=disgust, fear=fear, joy=joy, sadness=sadness, surprise=surprise)
+        return Emotions(img_name=id, source=self.source, anger=anger, disgust=disgust, fear=fear, joy=joy, sadness=sadness, surprise=surprise)
 
 class GoogleAPI:
     def __init__(self, image):
@@ -162,7 +165,7 @@ class GoogleAPI:
         sorrow = self.likelihood_to_value(face_annotations['sorrowLikelihood'])
         anger = self.likelihood_to_value(face_annotations['angerLikelihood'])
         surprise = self.likelihood_to_value(face_annotations['surpriseLikelihood'])
-        return Emotions(id=id, source=self.source, anger=anger, joy=joy, sadness=sorrow, surprise=surprise)
+        return Emotions(img_name=id, source=self.source, anger=anger, joy=joy, sadness=sorrow, surprise=surprise)
 
 class AzureAPI:
     def __init__(self, image):
@@ -198,4 +201,21 @@ class AzureAPI:
         sadness  = emotions['sadness']*m
         surprise = emotions['surprise']*m
 
-        return Emotions(id=id, source=self.source, anger=anger, contempt=contempt, disgust=disgust, fear=fear, joy=joy, neutral=neutral, sadness=sadness, surprise=surprise)
+        return Emotions(img_name=id, source=self.source, anger=anger, contempt=contempt, disgust=disgust, fear=fear, joy=joy, neutral=neutral, sadness=sadness, surprise=surprise)
+
+def AmazonAPI(json_response, id):
+    emotions = json_response['FaceDetails'][0]['Emotions']
+    amz_conversion = {
+        'ANGRY': 'anger',
+        'DISGUSTED': 'disgust',
+        'HAPPY': 'joy',
+        'SAD': 'sadness',
+        'SURPRISED': 'surprise'
+    }
+
+    e = {}
+    for emotion in (x for x in emotions if x['Type'] in list(amz_conversion.keys())):
+        e[amz_conversion[emotion['Type']]] = emotion['Confidence']
+    print('emotions formatted are', e)
+
+    return Emotions(img_name=id, source='amazon', anger=e.get('anger', 0), disgust=e.get('disgust', 0), joy=e.get('joy', 0), sadness=e.get('sadness', 0), surprise=e.get('surprise', 0))
