@@ -38,16 +38,16 @@ errlogger.setLevel(logging.WARNING)
 apis = [AzureAPI]
 
 # save output to json and csv format
-def save_output(json_res, csv_res, id, source):
+def save_output(json_res, csv_res, image, source):
     # save raw json
-    with open('o_json/{}_{}.json'.format(id, source), 'w') as json_file:
+    with open('o_json/{}_{}.json'.format(os.path.splitext(image)[0], source), 'w') as json_file:
         json.dump(json_res, json_file)
     # append formatted result to csv file (which should already exist with the appropriate headers)
     # with open('o_csv/' + source + '.csv', 'a', newline='') as csv_file:
     with open('o_csv/out.csv', 'a', newline='') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(csv_res)
-    log.debug('Results for {}.jpg | {} written to file'.format(id, source))
+    log.debug('Results for {} | {} written to file'.format(image, source))
 
 
 # producer, creates tasks and put into respective queues
@@ -65,9 +65,9 @@ async def consume(queue, session):
 
             # create the class
             api = Api_Class(image)
-            id = image.replace('.jpg', '')
+            id = os.path.splitext(image)[0]
             
-            log.debug('Consuming: {}.jpg | API: {} | queue size: {}'.format(id, api.source, str(queue.qsize())))
+            log.debug('Consuming: {} | API: {} | queue size: {}'.format(image, api.source, str(queue.qsize())))
 
             # set post or get http method
             if api.request_method == 'post':
@@ -77,7 +77,7 @@ async def consume(queue, session):
 
             # to send a json object I could use json=api.request_data() so I wouldn't need to use json.dumps() (see GoogleAPI)
             async with ses(api.url, data=api.request_data(), timeout=50, headers=api.headers()) as response:
-                log.debug('Waiting for API response: {}.jpg | {}'.format(id, api.source))
+                log.debug('Waiting for API response: {} | {}'.format(image, api.source))
 
                 # raise error if the response status is >400 (error)
                 response.raise_for_status()
@@ -89,22 +89,22 @@ async def consume(queue, session):
                 # convert above response in a common format
                 id, source, emotions = emotions_raw.formatted_output()
 
-                log.debug('Got response for {}.jpg | {}: {}'.format(id, api.source, json.dumps(emotions)))
+                log.debug('Got response for {} | {}: {}'.format(image, api.source, json.dumps(emotions)))
 
                 # save output to csv and json
-                save_output(res, list(emotions.values()), id, api.source)
+                save_output(res, list(emotions.values()), image, api.source)
                 
                 log.debug('{} API consumer sleeps for {}s'.format(api.source, api.sleep))
                 await asyncio.sleep(api.sleep)
                 queue.task_done()
 
-            log.debug('Task {}.jpg | {} completed'.format(id, api.source))
+            log.debug('Task {} | {} completed'.format(image, api.source))
         except (ClientResponseError, asyncio.TimeoutError) as e:
             # handle specific errors
-            log.debug('Response error on: {} | {}'.format(id, api.source))
+            log.debug('Response error on: {} | {}'.format(image, api.source))
             log.debug(e)
 
-            errlogger.error('Response error on: {} | {} | {}'.format(id, api.source, e))
+            errlogger.error('Response error on: {} | {} | {}'.format(image, api.source, e))
 
             # TODO: we could put the task in the dlq, so other consumers wil handle it
             # log.debug("Problem with {}, Moving to DLQ. main_queue: ({}))".format(item, str(queue.qsize())))            
@@ -200,10 +200,10 @@ def send_to_amz(filepath, upload = False):
         Attributes=['ALL']
     )
     print('got response from amazon')
-    res = AmazonAPI(response, filename.replace('.jpg', ''))
+    res = AmazonAPI(response, os.path.splitext(filename)[0])
     # save output to file
     id, source, emotions = res.formatted_output()
-    save_output(response, list(emotions.values()), filename.replace('.jpg', ''), sources['amz'])
+    save_output(response, list(emotions.values()), filename, sources['amz'])
 
 if __name__ == '__main__':
     # delete all output files
@@ -214,9 +214,9 @@ if __name__ == '__main__':
             os.remove(d + '/' + f)
 
     # get image names
-    imgs = glob.glob('img/*.jpg')
+    imgs = glob.glob('img/*')
     # removing path from image name
-    links = [os.path.basename(f) for f in glob.glob('img/*.jpg')]
+    links = [os.path.basename(f) for f in glob.glob('img/*')]
 
     # create initial csv files
     e = Emotions()
