@@ -85,6 +85,7 @@ import pandas as pd
 
 df = pd.read_csv(fout_path)
 df.columns = df.columns.str.replace('\s+', '')
+df["img_name"] = df["img_name"].apply(lambda name: name.strip(' ') )
 
 selected_cols = [col for col in df.columns.values if col[:2] == 'AU' or col[:4] == "true"]
 selected_cols.insert(0,"img_name")
@@ -108,7 +109,7 @@ for participant in glob.glob(label_files_path):
 			sel_images.append(file_[-16:])
 
 
-neutral_df = df_lite[df_lite["img_name"].apply(lambda img: img[-2:] == "01")].copy()
+neutral_df = df_lite[df_lite["img_name"].apply(lambda img: img[-2:] == "01" and img[-12:-9] == "001")].copy()
 neutral_df["emotion"] = 0
 
 emotion_df = df_lite[df_lite["img_name"].apply(lambda img: img[-16:] in sel_images )]
