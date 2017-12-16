@@ -11,12 +11,16 @@ participants = glob.glob(img_folder+"/*") #Returns a list of all folders with pa
 for x in participants:
 
     part = "%s" %x[-4:] #store current participant number
+
+    # Store neutral image
     neu_img = glob.glob(glob.glob("%s/*" %x)[0]+"/*")[0]
     print(neu_img)
 
     copyfile(neu_img, out_folder+"/"+neu_img.split("/")[-1])
     for sessions in glob.glob("%s/*" %x): #Store list of sessions for current participant
         print(sessions)
+
+        # Store emotional image ;)
         emo_img = glob.glob("%s/*" %sessions)[-1]
         print(emo_img)
 
