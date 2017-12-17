@@ -23,8 +23,11 @@ for file in files:
 
         facs_list.add("true_AU{:02d}".format(facs_id))
 
+
+facs_list = sorted(facs_list)
+
 facs_head = ""
-for col in sorted(facs_list):
+for col in facs_list:
     facs_head = facs_head+col+", "
 facs_head = facs_head[:-2]
 
@@ -61,10 +64,10 @@ for file in files:
         facs_val = float(tokens[1])
         if (facs_val == 0):
             facs_val = -1 
-        facs_labels[sorted(facs_list).index(facs_id)] = facs_val
+        facs_labels[facs_list.index(facs_id)] = facs_val
 
     facs_row = ""
-    for col in sorted(facs_labels):
+    for col in facs_labels:
         facs_row = facs_row+str(col)+", "
     facs_row = facs_row[:-2]
 
@@ -111,6 +114,8 @@ for participant in glob.glob(label_files_path):
 
 neutral_df = df_lite[df_lite["img_name"].apply(lambda img: img[-2:] == "01" and img[-12:-9] == "001")].copy()
 neutral_df["emotion"] = 0
+true_AU_cols = [col for col in df.columns.values if col[:4] == "true"]
+neutral_df[true_AU_cols] = 0
 
 emotion_df = df_lite[df_lite["img_name"].apply(lambda img: img[-16:] in sel_images )]
 
