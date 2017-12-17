@@ -3,7 +3,6 @@
 *.html
 data
 !.gitkeep
-scripts/apis/api_keys.py
 scripts/apis/temp
 scripts/apis/o_csv
 scripts/apis/o_json
