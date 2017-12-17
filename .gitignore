@@ -4,6 +4,4 @@
 data
 !.gitkeep
 scripts/apis/temp
-scripts/apis/o_csv
-scripts/apis/o_json
 scripts/apis/__pycache__
