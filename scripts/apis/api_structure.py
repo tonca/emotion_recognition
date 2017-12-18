@@ -123,7 +123,7 @@ class GoogleAPI:
         self.source = sources['google']
 
     def get_image(self):
-        img = open(self.image, 'rb')
+        img = open('img\\' + self.image, 'rb')
         data = img.read()
         b64 = base64.b64encode(data)
         return b64.decode('utf-8')
