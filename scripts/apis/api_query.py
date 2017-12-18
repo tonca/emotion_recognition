@@ -3,21 +3,18 @@ from asyncio import CancelledError
 import aiohttp
 import logging
 import json
-from aiohttp import ClientSession
-from aiohttp import ClientError, ClientResponseError
+from aiohttp import ClientSession, ClientResponseError
 from api_structure import sources, Emotions, GoogleAPI, KairosAPI, FaceplusAPI, AzureAPI, AmazonAPI
 from api_keys import amazon
 import boto3
 import multiprocessing
 from itertools import repeat
 import sys
-
-from pathlib import Path
 import csv
 import glob
 import os
 
-# setting up logger
+# setting up loggers
 log = logging.getLogger('std')
 shdlr = logging.StreamHandler()
 log.setLevel(logging.DEBUG)
@@ -25,17 +22,11 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 shdlr.setFormatter(formatter)
 log.addHandler(shdlr)
 
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     format="%(asctime)s:%(message)s"
-# )
 errlogger = logging.getLogger('err')
 hdlr = logging.FileHandler('errors.log')
 hdlr.setFormatter(formatter)
 errlogger.addHandler(hdlr)
 errlogger.setLevel(logging.WARNING)
-
-apis = [AzureAPI]
 
 # save output to json and csv format
 def save_output(json_res, csv_res, image, source):
@@ -120,7 +111,7 @@ async def consume(queue, session):
         except Exception as e:
             # generic error
             # TODO: fix this problem
-            # when an exception is thrown the current queue hangs althous queue is defined and apparently task_done() gets called)
+            # when an exception is thrown the current queue hangs although queue is defined and apparently task_done() gets called
             queue.task_done()
             log.debug('There was an error on: {} | {}'.format(id, api.source))
             log.debug(e)
@@ -133,31 +124,21 @@ async def run():
     queues = []
     for q in apis:
         queues.append(asyncio.Queue(maxsize=10))
-    # queue, kai, google = , asyncio.Queue(maxsize=10), asyncio.Queue(maxsize=10)
 
     # TODO: eventually use a semaphore to limit concurrent requests
     # sem = asyncio.Semaphore(10)
-
-    # create csv files
-    # e = Emotions()
-    # id, source, o = e.formatted_output()
-    # for api in sources.values():
-    #      with open('o_csv\\' + api + '.csv', 'w', newline='') as csv_file:
-    #         writer = csv.writer(csv_file)
-    #         writer.writerow(list(o.keys()))
 
     async with ClientSession() as session:
         # create consumers
         consumers = []
         for q in queues:
-            # TODO: custom ranges (google = 8)
+            # TODO: custom ranges
+            # some APIs are not restricted to a maximum number of simultaneous connections
+            # for example Google does not have this restriction, therefore the value in the
+            # range could be set to a higher value (eg. 8) to speed up the process
             consumers.append(
                 [asyncio.ensure_future(consume(q, session)) for _ in range(1)]
             )
-        # consumers     = [asyncio.ensure_future(consume(queue, session)) for _ in range(1)]
-        # kai_cons     = [asyncio.ensure_future(consume(kai, session)) for _ in range(1)]
-        # google_cons     = [asyncio.ensure_future(consume(google, session)) for _ in range(8)]
-        # dlq_consumers = [asyncio.ensure_future(consume(dlq, dlq, session)) for _ in range(1)]
 
         # set up producer
         producer = await produce(queues, links)
@@ -165,9 +146,6 @@ async def run():
         # wait for queues to finish
         for q in queues:
             await q.join()
-        # await kai.join()
-        # await google.join()
-        # await dlq.join()
 
         # terminate all pending tasks
         for consumer_array in consumers:
@@ -206,12 +184,22 @@ def send_to_amz(filepath, upload = False):
     save_output(response, list(emotions.values()), filename, sources['amz'])
 
 if __name__ == '__main__':
+    # all the APIs that are going to be used
+    apis = [GoogleAPI, KairosAPI, FaceplusAPI, AzureAPI]
+
+    # ask if this operation is a resume of a previous one
+    resume = input('Are you resuming a previous operation? [y,n]') == 'y'
+    if resume:
+        resume_confirm = input('Old files will not be deleted and new results will be appended to the /o_csv/out.csv file. Are you sure?') == 'y'
+        if not resume_confirm:
+            sys.exit('Script exits since user is not sure on what to do...')
     # delete all output files
-    out_dir = ['o_csv', 'o_json']
-    for d in out_dir:
-        fileList = os.listdir(d)
-        for f in fileList:
-            os.remove(d + '/' + f)
+    if not resume:
+        out_dir = ['o_csv', 'o_json']
+        for d in out_dir:
+            fileList = os.listdir(d)
+            for f in fileList:
+                os.remove(d + '/' + f)
 
     # get image names
     imgs = glob.glob('img/*')
@@ -221,13 +209,12 @@ if __name__ == '__main__':
     # create initial csv files
     e = Emotions()
     id, source, o = e.formatted_output()
-    # for api in sources.values():
-    #     with open('o_csv/' + api + '.csv', 'w', newline='') as csv_file:
-    #         writer = csv.writer(csv_file)
-    #         writer.writerow(list(o.keys()))
-    with open('o_csv/out.csv', 'w', newline='') as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(list(o.keys()))
+
+    # create initial csv file that will store all results
+    if not resume:
+        with open('o_csv/out.csv', 'w', newline='') as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(list(o.keys()))
 
     # check if using Amazon too, which requires an independent routine
     using_amz = input('Using Amazon Rekognition too? [y,n]') == 'y'
@@ -244,17 +231,9 @@ if __name__ == '__main__':
             bucket.objects.all().delete()
         
         # start jobs
-        # builtin_outputs = map(send_to_amz, list_of_inputs)
         pool_size = multiprocessing.cpu_count()
-        # pool = multiprocessing.Pool(
-        #     processes = pool_size
-        # )
-        # 
-        # pool_outputs = pool.map(send_to_amz, list_of_inputs)
         with multiprocessing.Pool(processes = pool_size) as pool:
             pool.starmap(send_to_amz, zip(imgs, repeat(should_upload)))
-        # pool.close()
-        # pool.join()
         log.debug('[AMAZON] - queue task completed')
 
     loop = asyncio.get_event_loop()
