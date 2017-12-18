@@ -206,12 +206,19 @@ def send_to_amz(filepath, upload = False):
     save_output(response, list(emotions.values()), filename, sources['amz'])
 
 if __name__ == '__main__':
+    # ask if this operation is a resume of a previous one
+    resume = input('Are you resuming a previous operation? [y,n]') == 'y'
+    if resume:
+        resume_confirm = input('Old files will not be deleted and new results will be appended to the /o_csv/out.csv file. Are you sure?') == 'y'
+        if not resume_confirm:
+            sys.exit('Script exits since user is not sure on what to do...')
     # delete all output files
-    out_dir = ['o_csv', 'o_json']
-    for d in out_dir:
-        fileList = os.listdir(d)
-        for f in fileList:
-            os.remove(d + '/' + f)
+    if not resume:
+        out_dir = ['o_csv', 'o_json']
+        for d in out_dir:
+            fileList = os.listdir(d)
+            for f in fileList:
+                os.remove(d + '/' + f)
 
     # get image names
     imgs = glob.glob('img/*')
@@ -225,9 +232,10 @@ if __name__ == '__main__':
     #     with open('o_csv/' + api + '.csv', 'w', newline='') as csv_file:
     #         writer = csv.writer(csv_file)
     #         writer.writerow(list(o.keys()))
-    with open('o_csv/out.csv', 'w', newline='') as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(list(o.keys()))
+    if not resume:
+        with open('o_csv/out.csv', 'w', newline='') as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(list(o.keys()))
 
     # check if using Amazon too, which requires an independent routine
     using_amz = input('Using Amazon Rekognition too? [y,n]') == 'y'
