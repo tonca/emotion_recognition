@@ -85,7 +85,7 @@ papa=pd.Series(clas)
 
 #like in the euclidean distance, but here we compute the distance with the minkowski degree going from 1 to 201
 lis_ne=[]
-for v in range(200):
+'''for v in range(200):
     for i in range(len(dati.iloc[:,0])):
         photo=dati.iloc[i,:]
         lis_parz=[]
@@ -94,9 +94,25 @@ for v in range(200):
             dist=scipy.spatial.distance.minkowski(emo,photo,p=v+1)
             lis_parz.append(dist)
             
-        lis_ne.append(lis_parz)   
+        lis_ne.append(lis_parz)   '''
+        
+
+for i in range(len(dati.iloc[:,0])):
+    photo=dati.iloc[i,:]
+    lis_parz=[]
+    for u in range(7):
+        emo=matrix.loc[u,:]
+        dist=scipy.spatial.distance.minkowski(emo,photo,p=1)
+        lis_parz.append(dist)
+    lis_ne.append(lis_parz)   
     
 ris_m=pd.DataFrame(lis_ne)        
+
+
+ris_m.T /ris_m.sum(axis=1)
+
+
+
 
 
 ris_m.columns=["anger","disgust","fear","happyness","sadness","surprise","neutral"]
@@ -109,6 +125,7 @@ emotions=pd.DataFrame(temp)
 clas=[]
 for i in range(len(ris_m.iloc[:,0])):
     
+    sor=ris_m.loc[i,:].tolist().sort()
     m=ris_m.loc[i,:]==min(ris_m.loc[i,:])
     rev=m.tolist()
     rr=emotions[rev][0].tolist()[0]
@@ -117,7 +134,7 @@ for i in range(len(ris_m.iloc[:,0])):
 papa_m=pd.Series(clas)
 
 
-
+'''
 derr=[]
 for i in range(200):
     temp=papa_m[i*400:400+i*400]
@@ -125,11 +142,12 @@ for i in range(200):
     a=(dat["emotion"]==temp).sum() / 400
     derr.append(a)
 trend=pd.Series(derr)
-
+'''
+((dat["emotion"]==papa_m).sum())/400
 
 
 #percentage of accurancy usig the different degree
-print(trend)
+#print(trend)
 
 
 
