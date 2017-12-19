@@ -123,7 +123,7 @@ async def run():
     # generate a queue for each API
     queues = []
     for q in apis:
-        queues.append(asyncio.Queue(maxsize=10))
+        queues.append(asyncio.Queue(maxsize=1000))
 
     # TODO: eventually use a semaphore to limit concurrent requests
     # sem = asyncio.Semaphore(10)
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     apis = [GoogleAPI, KairosAPI, FaceplusAPI, AzureAPI]
 
     # ask if this operation is a resume of a previous one
-    resume = input('Are you resuming a previous operation? [y,n]') == 'y'
+    resume = input('Are you resuming a previous operation? If not, all files in the /o_csv and /o_json will be deleted. [y,n]') == 'y'
     if resume:
         resume_confirm = input('Old files will not be deleted and new results will be appended to the /o_csv/out.csv file. Are you sure?') == 'y'
         if not resume_confirm:
@@ -220,8 +220,8 @@ if __name__ == '__main__':
     using_amz = input('Using Amazon Rekognition too? [y,n]') == 'y'
     if using_amz:
         # check if images should be uploaded
-        should_upload = input('Should images in /img folder be uplaoded to the {} bucket? [y,n]'.format(amazon['bucket_name'])) == 'y'
-        if should_upload:
+        should_upload = input('Should images in /img folder be uploaded to the {} bucket? [y,n]'.format(amazon['bucket_name'])) == 'y'
+        if should_upload and not resume:
             # delete all previous images
             bucket = boto3.resource(
                 's3',
