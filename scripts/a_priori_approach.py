@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import scipy
-
 #implementing the a priori matrix
 anger=pd.Series([0.17,0.10,0.33,0.25,0.03,0.05,0.00,0.1,0,0.05,0.06,0.4,0.31,0.49])
 disgust=pd.Series([0.01,0.01,0.35,0.01,0.06,0.36,0.06,0.21,0,0,0,0.25,0.32,0.4])
@@ -20,22 +19,26 @@ nam=dat.columns.values
 ok=nam[2:18]
 ok= ok[ok!="AU14_r"]
 ok= ok[ok!="AU23_r"]
-opendat=dat.iloc[:,2:18]
-del opendat["AU14_r"]
-del opendat["AU23_r"]
+opend=dat.iloc[:,2:18]
+del opend["AU14_r"]
+del opend["AU23_r"]
 
-a=(opendat>3)
-a.sum().sum()
-dati=opendat/5
+
+#rescale to [0,1] the dataset
+opend.max()>0
+
+opendat=opend.loc[:,opend.max()>0]
+
+dati=opendat/opendat.max()
 a=(dati>1)
 a.sum().sum()
 
-#creating th ea priori matrix
+#creating the a priori matrix
 mat=np.zeros((7,14))
 mat[:]=[anger,disgust,fear,happyness,sadness,surprise,neutral]
 matrix=pd.DataFrame(mat, columns=ok )
 
-
+matrix=matrix.loc[:,opend.max()>0]
 
 #EUCLIDEA
 
@@ -62,7 +65,7 @@ temp=[1,3,4,5,6,7,0]
 emotions=pd.DataFrame(temp)
 
 
-
+#selecting the minimal distance between each photo and the emotions
 clas=[]
 for i in range(len(ris.iloc[:,0])):
     
@@ -74,14 +77,13 @@ for i in range(len(ris.iloc[:,0])):
 papa=pd.Series(clas)
 
 
-
-(dat["emotion"]==papa).sum()
+#percentage of right clissified emotions
+((dat["emotion"]==papa).sum())/400
 
 
 #MINKOWSKI
 
-
-
+#like in the euclidean distance, but here we compute the distance with the minkowski degree going from 1 to 201
 lis_ne=[]
 for v in range(200):
     for i in range(len(dati.iloc[:,0])):
@@ -92,7 +94,6 @@ for v in range(200):
             dist=scipy.spatial.distance.minkowski(emo,photo,p=v+1)
             lis_parz.append(dist)
             
-#        lis_parz.append(v+1)
         lis_ne.append(lis_parz)   
     
 ris_m=pd.DataFrame(lis_ne)        
@@ -124,3 +125,29 @@ for i in range(200):
     a=(dat["emotion"]==temp).sum() / 400
     derr.append(a)
 trend=pd.Series(derr)
+
+
+
+#percentage of accurancy usig the different degree
+print(trend)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
