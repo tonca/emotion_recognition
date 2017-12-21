@@ -1,3 +1,7 @@
+
+
+
+
 import pandas as pd
 import numpy as np
 import scipy
@@ -148,11 +152,6 @@ trend=pd.Series(derr)
 
 #percentage of accurancy usig the different degree
 #print(trend)
-
-
-
-
-
 
 
 
