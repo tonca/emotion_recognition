@@ -1,7 +1,5 @@
 
 
-
-
 import pandas as pd
 import numpy as np
 import scipy
@@ -29,9 +27,9 @@ del opend["AU23_r"]
 
 
 #rescale to [0,1] the dataset
-((opend>0).sum())/327<0.70
+((opend>0).sum())/327<0.60
 
-openda=opend.loc[:,((( opend>0).sum())/len(dat.iloc[:,0]) <0.70) ]
+openda=opend.loc[:,((( opend>0).sum())/len(dat.iloc[:,0]) <0.60) ]
 
 opendat=openda.loc[:,openda.max()>0]
 
@@ -52,7 +50,7 @@ mat=np.zeros((7,14))
 mat[:]=[anger,disgust,fear,happyness,sadness,surprise,neutral]
 matrix=pd.DataFrame(mat, columns=ok )
 
-matrix=matrix.loc[:,((opend>0).sum())/len(dat.iloc[:,0]) <0.70]
+matrix=matrix.loc[:,((opend>0).sum())/len(dat.iloc[:,0]) <0.60]
 matrix=matrix.loc[:,openda.max()>0]
 
 
